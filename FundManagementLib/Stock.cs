@@ -16,7 +16,16 @@ namespace FundManagementLib
         public decimal MarketValue => Price * Quantity;
         public abstract decimal TransactionCost { get; }
         public abstract decimal Tolerance { get; }
-        public string StockWeight { get { return _stockWeight.ToString("N3"); } }
+        public string StockWeight {
+            get
+            {
+                return _stockWeight.ToString("N3");
+            }
+            set
+            {
+                _stockWeight = Convert.ToDecimal(value);
+            }
+        }
         public void AdjustStockWeight(decimal totalMarketValue)
         {
             _stockWeight = totalMarketValue == 0 ? 0 : (MarketValue * 100) / totalMarketValue;

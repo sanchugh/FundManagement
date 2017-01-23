@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace FundManagement
 {
@@ -90,23 +92,31 @@ namespace FundManagement
 
         public void AddStock(StockType stocktype, decimal price, decimal quantity)
         {
-            int index;
-            if (stocktype == StockType.Bond)
+            try
             {
-                index = _stockData.Where(s => s.StockType == StockType.Bond).Count() + 1;
+                int index;
+                if (stocktype == StockType.Bond)
+                {
+                    index = _stockData.Where(s => s.StockType == StockType.Bond).Count() + 1;
+                }
+                else
+                {
+                    index = _stockData.Where(s => s.StockType == StockType.Equity).Count() + 1;
+                }
+
+                var newStock = _factory.CreateStock(stocktype, stocktype.ToString() + index, price, quantity);
+
+                _stockData.Add(newStock);
+
+                foreach (var stock in _stockData) stock.AdjustStockWeight(TotalFundMarketValue);
+
+                RefreshTotalProperties();
+                OnPropertyChanged(nameof(StockData));
             }
-            else
+            catch (Exception ex)
             {
-                index = _stockData.Where(s => s.StockType == StockType.Equity).Count() + 1;
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => MessageBox.Show("Error Occurred \n\r" + ex.Message + "\n\r" + ex.StackTrace, "ERROR", MessageBoxButton.OK, MessageBoxImage.Error)));
             }
-
-            var newStock = _factory.CreateStock(stocktype, stocktype.ToString() + index, price, quantity);
-
-            _stockData.Add(newStock);
-
-            foreach (var stock in _stockData) stock.AdjustStockWeight(TotalFundMarketValue);
-
-            RefreshTotalProperties();
         }
         private IList<StockType> GetStockTypes()
         {
